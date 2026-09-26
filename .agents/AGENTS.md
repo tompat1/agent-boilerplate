@@ -64,9 +64,10 @@ Directives are living documents. When you discover API constraints, better appro
 
 **4. Run quality gates before delivery**
 - Read [`directives/testing_and_deployment.md`](../directives/testing_and_deployment.md) when setting up a repository or working with tests, builds, pushes, CI, or deployment.
-- Run the fast `preflight` gate before every push.
-- Run the complete `test:gate` before deploys, production builds, large changes, and final handoff.
-- Treat failures as blocking. Fix and rerun them; never bypass a gate to make a deployment pass.
+- Run the fast `preflight` gate before every commit.
+- Run the verified production build before every push; it must execute the complete `test:gate` before bundling.
+- Rerun the complete gate before deploys, large changes, and final handoff.
+- Treat missing or failing gates as blocking. Fix and rerun them; never bypass a hook or gate to make a commit, push, or deployment pass.
 - For npm projects, `npm run build` must execute the full gate before bundling so Cloudflare and other CI builds fail closed.
 
 ---

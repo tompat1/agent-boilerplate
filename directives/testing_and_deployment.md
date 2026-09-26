@@ -2,9 +2,9 @@
 
 ## Goal
 
-Make local pushes and production deployments fail early when type, lint, test,
-or integration checks are broken. Cloudflare and other CI providers must never
-be the first place routine quality errors are discovered.
+Make local commits and pushes fail early when type, lint, test, integration, or
+production-bundle checks are broken. Cloudflare and other CI providers must
+never be the first place routine quality errors are discovered.
 
 ## Required public commands
 
@@ -13,11 +13,12 @@ manager and stack. For npm projects, use these exact script names:
 
 | When | Command | Purpose |
 | --- | --- | --- |
-| Before every push | `npm run preflight` | Fast typecheck and lint gate |
+| Before every commit | `npm run preflight` | Fast typecheck and lint gate |
+| Before every push | `npm run build` | Run the full gate, then create the production bundle |
 | Before deploys, large changes, and final handoff | `npm run test:gate` | Complete project verification suite |
-| Production build and CI/Pages | `npm run build` | Run the full gate, then bundle |
+| CI and Cloudflare | `npm run build` | Backstop the same verified build already run locally |
 
-`preflight` should normally finish quickly enough to run before every push. At
+`preflight` should normally finish quickly enough to run before every commit. At
 minimum it must include all configured static checks:
 
 ```json
@@ -72,17 +73,39 @@ Adapt `build:bundle` to the framework. Avoid recursive definitions where
 `build-verified.sh` invokes `npm run build` again.
 
 Cloudflare Pages or Workers must call the verified `npm run build`; deployment
-configuration must not bypass it by calling the bundler directly.
+configuration must not bypass it by calling the bundler directly. Run that same
+build locally before push so Cloudflare is repeating a known-clean operation.
+
+## Enforced local hooks
+
+After configuring the project scripts, install the template's fail-closed hooks:
+
+```bash
+bash execution/install-git-hooks.sh
+```
+
+The pre-commit hook requires and runs `preflight`. The pre-push hook requires
+and runs both `test:gate` and the verified production `build`. This deliberate
+redundancy still catches a miswired build script locally. For non-npm
+repositories, provide executable `scripts/preflight` and
+`scripts/build-verified` equivalents.
+
+Missing scripts are errors, not reasons to skip validation. Do not use
+`--no-verify` to bypass the hooks. If an emergency exception is ever necessary,
+it must be explicitly authorized and documented; the CI gate still remains
+mandatory.
 
 ## Standard workflow
 
 1. Implement the change and its focused tests.
 2. Run the relevant focused checks while iterating.
-3. Run `npm run preflight` immediately before every push.
-4. Run `npm run test:gate` before a deploy, production build, large-change
-   handoff, or completion claim.
-5. Fix failures at their source and rerun the failed command.
-6. Rerun the required combined gate from the beginning before continuing.
+3. Run `npm run preflight` immediately before every commit.
+4. Run `npm run build` immediately before every push. The build must run
+   `test:gate` before bundling.
+5. Rerun `npm run test:gate` before a deploy, large-change handoff, or completion
+   claim when no push/build has just verified the exact same tree.
+6. Fix failures at their source and rerun the failed command.
+7. Rerun the required combined gate from the beginning before continuing.
 
 Warnings may remain only when the project's written policy explicitly allows
 them. Errors always block push and deployment.
@@ -97,14 +120,17 @@ When creating a repository from this template:
    apply to the project.
 3. Add the `preflight` and `test:gate` entry points.
 4. Make the production build execute `test:gate` before bundling.
-5. Configure CI and Cloudflare to use the verified production build.
-6. Run both gates once and record any project-specific exceptions below.
+5. Install the local hooks with `bash execution/install-git-hooks.sh`.
+6. Configure CI and Cloudflare to use the verified production build and make
+   that check required before merge where the hosting workflow supports it.
+7. Run `preflight`, `test:gate`, and the production build once, then record any
+   project-specific exceptions below.
 
 ## Failure protocol
 
 If a gate fails:
 
-1. Stop the push or deployment.
+1. Stop the commit, push, or deployment.
 2. Read the complete error and reproduce the failing tier directly.
 3. Fix the implementation, configuration, or legitimate test contract.
 4. Do not disable, skip, or weaken the check merely to make the gate pass.
