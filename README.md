@@ -6,10 +6,13 @@ This repository serves as a template for setting up a structured pair-programmin
 
 ```
 .
+├── AGENTS.md               # Root entry point and mandatory quality-gate routing
 ├── .agents/
 │   └── AGENTS.md           # Core agent instructions & persona triggers
 ├── directives/
-│   └── README.md           # Layer 1: Standard Operating Procedures (SOPs)
+│   ├── README.md           # Layer 1: Standard Operating Procedures (SOPs)
+│   └── testing_and_deployment.md
+│                           # Pre-push and production verification contract
 ├── execution/
 │   └── README.md           # Layer 3: Deterministic execution scripts (Python)
 ├── .tmp/
@@ -27,4 +30,10 @@ This repository serves as a template for setting up a structured pair-programmin
    cp .env.example .env
    ```
 4. Define your project goals in `directives/` and write automation scripts in `execution/`.
-5. Start pair programming! The agent will automatically read `.agents/AGENTS.md` (or standard model configuration files) to follow the multi-model routing strategy and operating principles.
+5. Configure the real quality commands for the chosen stack. For npm projects,
+   add `preflight`, `test:gate`, and a verified `build` as specified in
+   [`directives/testing_and_deployment.md`](directives/testing_and_deployment.md).
+6. Run `npm run preflight` before every push and `npm run test:gate` before
+   deploys or larger handoffs.
+7. Start pair programming. Agents read `AGENTS.md`, which routes them to the
+   core instructions and mandatory directives.

@@ -2,6 +2,12 @@
 
 This directory contains **Directives** — Standard Operating Procedures (SOPs) written in natural language. They define the "what" and the "how" for complex, repeatable operations.
 
+## Active directives
+
+| Directive | Use it for |
+| --- | --- |
+| [Testing and deployment verification gate](testing_and_deployment.md) | Repository bootstrap, tests, builds, pushes, CI, Cloudflare, and deployment |
+
 ## 📄 Template Structure
 
 Every directive should follow this general format:

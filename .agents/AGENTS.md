@@ -62,6 +62,13 @@ Before writing a script, check `execution/` per your directive. Only create new 
 **3. Update directives as you learn**  
 Directives are living documents. When you discover API constraints, better approaches, common errors, or timing expectations—update the directive. Don't create or overwrite directives without asking unless explicitly told to. Directives are your instruction set and must be preserved.
 
+**4. Run quality gates before delivery**
+- Read [`directives/testing_and_deployment.md`](../directives/testing_and_deployment.md) when setting up a repository or working with tests, builds, pushes, CI, or deployment.
+- Run the fast `preflight` gate before every push.
+- Run the complete `test:gate` before deploys, production builds, large changes, and final handoff.
+- Treat failures as blocking. Fix and rerun them; never bypass a gate to make a deployment pass.
+- For npm projects, `npm run build` must execute the full gate before bundling so Cloudflare and other CI builds fail closed.
+
 ---
 
 ## 🔄 Self-Annealing Loop
